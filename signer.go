@@ -30,10 +30,12 @@ func Sign(lotusExportedPK string, msg []byte) (*crypto.Signature, error) {
 }
 
 // Pure-go secp256k1 signer!
-// This has a problem. The serialization format used in filecoin-ffi,
+// This has a problem. The serialization format used in `filecoin-project/go-crypto`,
 // is R||S||V to allow for self-verifying signatures. But btcec doesn't
 // return V. For now it appends always V=0, but V can be 0 or 1, this should
 // be calculated correctly.
+// Lotus uses `filecoin-project/go-crypto` which ends up using
+// https://github.com/ipsn/go-secp256k1/blob/9d62b9f0bc52d16160f79bfb84b2bbf0f6276b03/secp256.go#L53
 func signSecp256k1(pk []byte, msg []byte) (*crypto.Signature, error) {
 	priv, _ := btcec.PrivKeyFromBytes(btcec.S256(), pk)
 	msgHash := blake2b.Sum256(msg)
@@ -47,6 +49,7 @@ func signSecp256k1(pk []byte, msg []byte) (*crypto.Signature, error) {
 	}, nil
 }
 
+// Not working yet.
 func signBLS(pk []byte, msg []byte) (*crypto.Signature, error) {
 	var apk [32]byte
 	copy(apk[:], pk)
