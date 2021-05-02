@@ -54,7 +54,10 @@ func signBLS(pk []byte, msg []byte) (*crypto.Signature, error) {
 	var apk [32]byte
 	copy(apk[:], pk)
 
-	sk := g1pubs.DeriveSecretKey(apk)
+	sk := g1pubs.DeserializeSecretKey(apk)
+	if sk.GetFRElement() == nil {
+		return nil, fmt.Errorf("wrong private key")
+	}
 	sig := g1pubs.Sign(msg, sk)
 	sigRaw := sig.Serialize()
 
