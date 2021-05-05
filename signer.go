@@ -8,7 +8,7 @@ import (
 	"github.com/dchest/blake2b"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/lotus/chain/types"
-	"github.com/phoreproject/bls/g1pubs"
+	"github.com/jsign/bls/g1pubs"
 
 	"encoding/hex"
 )
