@@ -1,7 +1,6 @@
 package bls
 
 import (
-	"encoding/binary"
 	"fmt"
 
 	curve12381 "github.com/drand/kyber-bls12381"
@@ -13,17 +12,10 @@ import (
 // Filecoin client, which is a big-endian encoded 32 byte scalar.
 // The signature has a format as described in RFC 2.6.1.
 func Sign(pk []byte, msg []byte) ([]byte, error) {
-	var out [32]byte
-	z0 := binary.BigEndian.Uint64(pk[0:8])
-	z1 := binary.BigEndian.Uint64(pk[8:16])
-	z2 := binary.BigEndian.Uint64(pk[16:24])
-	z3 := binary.BigEndian.Uint64(pk[24:32])
-	binary.LittleEndian.PutUint64(out[0:8], z3)
-	binary.LittleEndian.PutUint64(out[8:16], z2)
-	binary.LittleEndian.PutUint64(out[16:24], z1)
-	binary.LittleEndian.PutUint64(out[24:32], z0)
-	scalar := curve12381.NewKyberScalar().SetBytes(out[:])
-
+	for i := 0; i < 16; i++ {
+		pk[i], pk[32-i-1] = pk[32-i-1], pk[i]
+	}
+	scalar := curve12381.NewKyberScalar().SetBytes(pk)
 	signer := bls.NewSchemeOnG2(curve12381.NewBLS12381Suite())
 	s, err := signer.Sign(scalar, msg)
 	if err != nil {
