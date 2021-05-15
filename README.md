@@ -26,7 +26,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Ignacio Hagopian - [@ignaciohagopian](https://github.com/jsign) 
+Ignacio Hagopian - [@jsign](https://github.com/jsign) 
 
 
 ## Acknowledgements
