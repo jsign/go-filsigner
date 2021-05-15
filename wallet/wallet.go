@@ -12,6 +12,10 @@ import (
 	"encoding/hex"
 )
 
+// WalletSign allows to sign a message using an exported private key. The exported private key
+// is a hex-encoded string of a sepc256k1 or BLS private key as exported by a Filecoin
+// client (e.g: `lotus wallet export`). It automatically detects the key type and signs
+// appropiately.
 func WalletSign(exportedPK string, msg []byte) (*crypto.Signature, error) {
 	ki, err := decodeLotusExportedPK(exportedPK)
 	if err != nil {
