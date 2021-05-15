@@ -1,4 +1,4 @@
-package signer
+package wallet
 
 import (
 	"encoding/hex"
@@ -29,7 +29,7 @@ func testSign(t *testing.T, lotusExportedPK string) string {
 	t.Helper()
 	msg := []byte("DUKE")
 
-	sig, err := Sign(lotusExportedPK, msg)
+	sig, err := WalletSign(lotusExportedPK, msg)
 	require.NoError(t, err)
 
 	sigm, err := sig.MarshalBinary()
