@@ -14,10 +14,11 @@ import (
 func Sign(pk []byte, msg []byte) ([]byte, error) {
 	// We need to do an endianess conversion considering
 	// Filecoin assumptions around the private key representation.
-	for i := 0; i < 16; i++ {
-		pk[i], pk[32-i-1] = pk[32-i-1], pk[i]
+	var pkrev [32]byte
+	for i := 0; i < 32; i++ {
+		pkrev[i] = pk[32-i-1]
 	}
-	scalar := curve12381.NewKyberScalar().SetBytes(pk)
+	scalar := curve12381.NewKyberScalar().SetBytes(pkrev[:])
 	signer := bls.NewSchemeOnG2(curve12381.NewBLS12381Suite())
 	s, err := signer.Sign(scalar, msg)
 	if err != nil {
