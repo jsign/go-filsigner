@@ -13,8 +13,6 @@ for simplicity and painless compatibility in multiples OS and CPU architectures.
 - [ ] Provide a Wallet interface that can be a drop-in replacement with Lotus wallets.
 - [ ] Include more test vectors for both secp256k1 and BLS signatures.
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
-
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
