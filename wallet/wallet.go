@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
 	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/jsign/go-filsigner/bls"
@@ -43,6 +44,21 @@ func WalletSign(exportedPK string, msg []byte) (*crypto.Signature, error) {
 		}, nil
 	default:
 		return nil, fmt.Errorf("signature type not supported")
+	}
+}
+
+func PublicKey(lotusExportedPK string) (address.Address, error) {
+	ki, err := decodeLotusExportedPK(lotusExportedPK)
+	if err != nil {
+		return address.Undef, fmt.Errorf("decoding lotus exported key: %s", err)
+	}
+
+	switch ki.Type {
+	case types.KTSecp256k1:
+		return secp256k1.GetPubKey(ki.PrivateKey)
+	default:
+		// TODO: support BLS.
+		return address.Undef, fmt.Errorf("signature type not supported")
 	}
 }
 
