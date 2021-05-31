@@ -1,9 +1,12 @@
 package secp256k1
 
 import (
+	"fmt"
+
 	"github.com/dchest/blake2b"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4/ecdsa"
+	"github.com/filecoin-project/go-address"
 )
 
 // Sign creates a secp256k1 signature of a message using a private key.
@@ -23,4 +26,16 @@ func Sign(pk []byte, msg []byte) ([]byte, error) {
 	sig[64] = recoveryID - 27
 
 	return sig, nil
+}
+
+func GetPubKey(pk []byte) (address.Address, error) {
+	priv := secp256k1.PrivKeyFromBytes(pk)
+	pubkey := priv.PubKey()
+
+	addr, err := address.NewSecp256k1Address(pubkey.SerializeUncompressed())
+	if err != nil {
+		return address.Undef, fmt.Errorf("generating public key: %s", err)
+	}
+
+	return addr, nil
 }
