@@ -28,6 +28,19 @@ func Sign(pk []byte, msg []byte) ([]byte, error) {
 	return sig, nil
 }
 
+func Verify(pk []byte, msg []byte, sig []byte) bool {
+	// We need to do the inverse operation of signatures.
+	recoveryID := sig[64] + 27
+	copy(sig[1:], sig)
+	sig[0] = recoveryID
+
+	msgHash := blake2b.Sum256(msg)
+	if _, _, err := ecdsa.RecoverCompact(sig, msgHash[:]); err != nil {
+		return false
+	}
+	return true
+}
+
 func GetPubKey(pk []byte) (address.Address, error) {
 	priv := secp256k1.PrivKeyFromBytes(pk)
 	pubkey := priv.PubKey()
