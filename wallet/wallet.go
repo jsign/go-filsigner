@@ -47,6 +47,21 @@ func WalletSign(exportedPK string, msg []byte) (*crypto.Signature, error) {
 	}
 }
 
+func WalletVerify(publicKey address.Address, msg []byte, sig []byte) (bool, error) {
+	var signature crypto.Signature
+	if err := signature.UnmarshalBinary(sig); err != nil {
+		return false, fmt.Errorf("unmarshaling signature: %s", err)
+	}
+	switch publicKey.Protocol() {
+	case address.SECP256K1:
+		return secp256k1.Verify(publicKey.Payload(), msg, signature.Data), nil
+	case address.BLS:
+		return bls.Verify(publicKey.Payload(), msg, signature.Data), nil
+	default:
+		return false, fmt.Errorf("address type not supported")
+	}
+}
+
 func PublicKey(lotusExportedPK string) (address.Address, error) {
 	ki, err := decodeLotusExportedPK(lotusExportedPK)
 	if err != nil {

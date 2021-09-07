@@ -26,3 +26,17 @@ func Sign(pk []byte, msg []byte) ([]byte, error) {
 	}
 	return s, nil
 }
+
+// Verify verifies that a message is correctly signed by a public key.
+func Verify(pubkey, msg, sig []byte) bool {
+	point := curve12381.NewGroupG1().Point()
+	if err := point.UnmarshalBinary(pubkey); err != nil {
+		return false
+	}
+	signer := bls.NewSchemeOnG2(curve12381.NewBLS12381Suite())
+	if err := signer.Verify(point, msg, sig); err != nil {
+		return false
+	}
+
+	return true
+}
