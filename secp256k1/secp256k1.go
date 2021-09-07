@@ -51,6 +51,7 @@ func Verify(pubkey, msg, sig []byte) bool {
 	return true
 }
 
+// GetPubKey returns the public key from the private key.
 func GetPubKey(pk []byte) (address.Address, error) {
 	priv := secp256k1.PrivKeyFromBytes(pk)
 	pubkey := priv.PubKey()
