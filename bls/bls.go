@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	curve12381 "github.com/drand/kyber-bls12381"
-	"github.com/drand/kyber/sign/bls"
+	"github.com/drand/kyber/sign/bls" // nolint:staticcheck
 )
 
 // Sign creates a BLS signature of a message using a private key.
