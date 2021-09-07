@@ -1,6 +1,7 @@
 package secp256k1
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/dchest/blake2b"
@@ -26,6 +27,28 @@ func Sign(pk []byte, msg []byte) ([]byte, error) {
 	sig[64] = recoveryID - 27
 
 	return sig, nil
+}
+
+// Verify verifies that a message is correctly signed by a public key.
+func Verify(pubkey, msg, sig []byte) bool {
+	// We need to do the inverse operation of signatures.b
+	recoveryID := sig[64] + 27
+	copy(sig[1:], sig)
+	sig[0] = recoveryID
+
+	msgHash := blake2b.Sum256(msg)
+	vpubkey, _, err := ecdsa.RecoverCompact(sig, msgHash[:])
+	if err != nil {
+		return false
+	}
+	verifAddr, err := address.NewSecp256k1Address(vpubkey.SerializeUncompressed())
+	if err != nil {
+		return false
+	}
+	if !bytes.Equal(verifAddr.Payload(), pubkey) {
+		return false
+	}
+	return true
 }
 
 func GetPubKey(pk []byte) (address.Address, error) {
