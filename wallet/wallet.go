@@ -72,8 +72,7 @@ func PublicKey(lotusExportedPK string) (address.Address, error) {
 	case types.KTSecp256k1:
 		return secp256k1.GetPubKey(ki.PrivateKey)
 	default:
-		// TODO: support BLS.
-		return address.Undef, fmt.Errorf("signature type not supported")
+		return bls.GetPubKey(ki.PrivateKey)
 	}
 }
 

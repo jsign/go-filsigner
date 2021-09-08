@@ -5,6 +5,7 @@ import (
 
 	curve12381 "github.com/drand/kyber-bls12381"
 	"github.com/drand/kyber/sign/bls" // nolint:staticcheck
+	"github.com/filecoin-project/go-address"
 )
 
 // Sign creates a BLS signature of a message using a private key.
@@ -39,4 +40,26 @@ func Verify(pubkey, msg, sig []byte) bool {
 	}
 
 	return true
+}
+
+// GetPubKey returns the public key from the private key.
+func GetPubKey(pk []byte) (address.Address, error) {
+	var pkrev [32]byte
+	for i := 0; i < 32; i++ {
+		pkrev[i] = pk[32-i-1]
+	}
+	scalar := curve12381.NewKyberScalar().SetBytes(pkrev[:])
+	pubPoint := curve12381.NewGroupG1().Point()
+	pubPoint.Mul(scalar, nil)
+
+	buf, err := pubPoint.MarshalBinary()
+	if err != nil {
+		return address.Address{}, fmt.Errorf("marshaling pub: %s", err)
+	}
+	addr, err := address.NewBLSAddress(buf)
+	if err != nil {
+		return address.Undef, fmt.Errorf("generating public key: %s", err)
+	}
+
+	return addr, nil
 }

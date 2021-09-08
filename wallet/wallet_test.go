@@ -61,7 +61,7 @@ func TestSecp256k1(t *testing.T) {
 	t.Run("gen-pubkey", func(t *testing.T) {
 		addr, err := PublicKey(privateKeyHex)
 		require.NoError(t, err)
-		require.Equal(t, "f1fib3pv7jua2ockdugtz7viz3cyy6lkhh7rfx3sa", addr.String())
+		require.Equal(t, publicAddr, addr.String())
 	})
 }
 
@@ -86,6 +86,12 @@ func TestBLSSign(t *testing.T) {
 		genHexSignature := hex.EncodeToString(sigm)
 
 		require.Equal(t, hexSignature, genHexSignature)
+	})
+
+	t.Run("gen-pubkey", func(t *testing.T) {
+		addr, err := PublicKey(privateKeyHex)
+		require.NoError(t, err)
+		require.Equal(t, publicAddr, addr.String())
 	})
 
 	t.Run("verify", func(t *testing.T) {
