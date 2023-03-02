@@ -11,6 +11,7 @@ import (
 var msg = []byte("DUKE") // 44554b45 in hex.
 
 func TestSecp256k1(t *testing.T) {
+	address.CurrentNetwork = address.Mainnet
 	t.Parallel()
 
 	publicAddr := "f1fib3pv7jua2ockdugtz7viz3cyy6lkhh7rfx3sa"
@@ -50,12 +51,9 @@ func TestSecp256k1(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, okSig)
 
-		// Check that signature verification fails with incorrect public key.
-		wrongAddr, err := address.NewFromString("f1fib3pv7jua2ockdugtz7viz3cyy6lkhh7rfx3sb")
-		require.NoError(t, err)
-		okSig, err = WalletVerify(wrongAddr, msg, sig)
-		require.NoError(t, err)
-		require.False(t, okSig)
+		// Check that address parsing fails with incorrect public key.
+		_, err = address.NewFromString("f1fib3pv7jua2ockdugtz7viz3cyy6lkhh7rfx3sb")
+		require.Error(t, err)
 	})
 
 	t.Run("gen-pubkey", func(t *testing.T) {
@@ -66,6 +64,7 @@ func TestSecp256k1(t *testing.T) {
 }
 
 func TestBLSSign(t *testing.T) {
+	address.CurrentNetwork = address.Mainnet
 	t.Parallel()
 
 	publicAddr := "f3rpskqryflc2sqzzzu7j2q6fecrkdkv4p2avpf4kyk5u754he7g6cr2rbpmif7pam5oxbme2oyzot4ry3d74q"

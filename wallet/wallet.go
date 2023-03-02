@@ -3,10 +3,8 @@ package wallet
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/crypto"
-	"github.com/filecoin-project/lotus/chain/types"
 	"github.com/jsign/go-filsigner/bls"
 	"github.com/jsign/go-filsigner/secp256k1"
 
@@ -24,7 +22,7 @@ func WalletSign(exportedPK string, msg []byte) (*crypto.Signature, error) {
 	}
 
 	switch ki.Type {
-	case types.KTSecp256k1:
+	case KTSecp256k1:
 		sig, err := secp256k1.Sign(ki.PrivateKey, msg)
 		if err != nil {
 			return nil, fmt.Errorf("generating secp256k1 signature: %w", err)
@@ -33,7 +31,7 @@ func WalletSign(exportedPK string, msg []byte) (*crypto.Signature, error) {
 			Type: crypto.SigTypeSecp256k1,
 			Data: sig,
 		}, nil
-	case types.KTBLS:
+	case KTBLS:
 		sig, err := bls.Sign(ki.PrivateKey, msg)
 		if err != nil {
 			return nil, fmt.Errorf("generating bls signature: %w", err)
@@ -69,19 +67,19 @@ func PublicKey(lotusExportedPK string) (address.Address, error) {
 	}
 
 	switch ki.Type {
-	case types.KTSecp256k1:
+	case KTSecp256k1:
 		return secp256k1.GetPubKey(ki.PrivateKey)
 	default:
 		return bls.GetPubKey(ki.PrivateKey)
 	}
 }
 
-func decodeLotusExportedPK(lotusExportedPK string) (*types.KeyInfo, error) {
+func decodeLotusExportedPK(lotusExportedPK string) (*KeyInfo, error) {
 	kiBytes, err := hex.DecodeString(lotusExportedPK)
 	if err != nil {
 		return nil, fmt.Errorf("decoding hex: %s", err)
 	}
-	var ki types.KeyInfo
+	var ki KeyInfo
 	if err := json.Unmarshal(kiBytes, &ki); err != nil {
 		return nil, fmt.Errorf("unmarshaling exported key: %s", err)
 	}
