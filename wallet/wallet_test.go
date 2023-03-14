@@ -196,12 +196,3 @@ func TestBLSSign(t *testing.T) {
 		require.False(t, result)
 	})
 }
-
-type DummyStream struct {
-}
-
-func (d DummyStream) XORKeyStream(dst, src []byte) {
-	for i := range dst {
-		dst[i] = 0
-	}
-}
