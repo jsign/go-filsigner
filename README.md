@@ -28,6 +28,7 @@ Ignacio Hagopian - [@jsign](https://github.com/jsign)
 
 
 ## Acknowledgements
+* [@xinaxu](https://github.com/xinaxu)
 * [@dignifiedquire](https://github.com/dignifiedquire)
 * [@nikkolasg](https://github.com/nikkolasg)
 * [@ribasushi](https://github.com/ribasushi)
