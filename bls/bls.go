@@ -16,8 +16,15 @@ func Sign(pk []byte, msg []byte) ([]byte, error) {
 	// We need to do an endianess conversion considering
 	// Filecoin assumptions around the private key representation.
 	var pkrev [32]byte
+	isZero := true
 	for i := 0; i < 32; i++ {
 		pkrev[i] = pk[32-i-1]
+		if pkrev[i] != 0 {
+			isZero = false
+		}
+	}
+	if isZero {
+		return nil, fmt.Errorf("private key is zero point")
 	}
 	scalar := curve12381.NewKyberScalar().SetBytes(pkrev[:])
 	signer := bls.NewSchemeOnG2(curve12381.NewBLS12381Suite())
@@ -29,17 +36,20 @@ func Sign(pk []byte, msg []byte) ([]byte, error) {
 }
 
 // Verify verifies that a message is correctly signed by a public key.
-func Verify(pubkey, msg, sig []byte) bool {
+func Verify(pubkey, msg, sig []byte) (bool, error) {
 	point := curve12381.NewGroupG1().Point()
 	if err := point.UnmarshalBinary(pubkey); err != nil {
-		return false
+		return false, nil
+	}
+	if point.Equal(curve12381.NullKyberG1()) {
+		return false, fmt.Errorf("public key is zero point")
 	}
 	signer := bls.NewSchemeOnG2(curve12381.NewBLS12381Suite())
 	if err := signer.Verify(point, msg, sig); err != nil {
-		return false
+		return false, nil
 	}
 
-	return true
+	return true, nil
 }
 
 // GetPubKey returns the public key from the private key.
