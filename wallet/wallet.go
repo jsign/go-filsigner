@@ -54,7 +54,7 @@ func WalletVerify(publicKey address.Address, msg []byte, sig []byte) (bool, erro
 	case address.SECP256K1:
 		return secp256k1.Verify(publicKey.Payload(), msg, signature.Data), nil
 	case address.BLS:
-		return bls.Verify(publicKey.Payload(), msg, signature.Data), nil
+		return bls.Verify(publicKey.Payload(), msg, signature.Data)
 	default:
 		return false, fmt.Errorf("address type not supported")
 	}

@@ -2,6 +2,9 @@ package wallet
 
 import (
 	"encoding/hex"
+	"encoding/json"
+	"github.com/filecoin-project/go-state-types/crypto"
+	"github.com/jsign/go-filsigner/bls"
 	"testing"
 
 	"github.com/filecoin-project/go-address"
@@ -63,6 +66,28 @@ func TestSecp256k1(t *testing.T) {
 	})
 }
 
+func checkBlsVerify(t *testing.T, signatureBytes string, addr string, messageBytes string, expectSuccess bool) {
+	sig, err := hex.DecodeString(signatureBytes)
+	require.NoError(t, err)
+	a, err := address.NewFromString(addr)
+	require.NoError(t, err)
+	data := []byte(messageBytes)
+	s := crypto.Signature{
+		Type: crypto.SigTypeBLS,
+		Data: sig,
+	}
+	b, err := s.MarshalBinary()
+	require.NoError(t, err)
+	okSig, err := WalletVerify(a, data, b)
+	if expectSuccess {
+		require.NoError(t, err)
+		require.True(t, okSig)
+	} else {
+		require.NoError(t, err)
+		require.False(t, okSig)
+	}
+}
+
 func TestBLSSign(t *testing.T) {
 	address.CurrentNetwork = address.Mainnet
 	t.Parallel()
@@ -118,4 +143,65 @@ func TestBLSSign(t *testing.T) {
 		require.False(t, okSig)
 
 	})
+
+	// https://github.com/filecoin-project/lotus/blob/97a9921cdd807278414440dc041f567b6e3fb8d0/lib/sigs/bls/bls_test.go#L39
+	t.Run("test-uncompressed-fails", func(t *testing.T) {
+		t.Parallel()
+
+		data := "potato"
+		addr := "f3tcgq5scpfhdwh4dbalwktzf6mbv3ng2nw7tyzni5cyrsgvineid6jybnweecpa6misa6lk4tvwtxj2gkwpzq"
+		// compressed
+		signature := "9927444bfcffdca34af57b78757b9b90f1cd28d2a3aeed2aa6bde299f8bbb9184756f2287b0588e6d3f2860d2bb2066e0c59778c1e644fb2cfb35fba8f09fa824a9ed825108c82ff4bf634c1037eeaf185f45673d4a1c1c6eeb712b7d72a5498"
+		checkBlsVerify(t, signature, addr, data, true)
+		// compressed byte changed
+		signature = "9927444bfcffdca34af57b78757b9b90f1cd28d2a3aeed2aa6bde299f8bbb9184756f2287b0588f6d3f2860d2bb2066e0c59778c1e644fb2cfb35fba8f09fa824a9ed825108c82ff4bf634c1037eeaf185f45673d4a1c1c6eeb712b7d72a5498"
+		checkBlsVerify(t, signature, addr, data, false)
+		// compressed with prefix
+		signature = "9927444bfcffdca34af57b78757b9b90f1cd28d2a3aeed2aa6bde299f8bbb9184756f2287b0588e6d3f2860d2bb2066e0c59778c1e644fb2cfb35fba8f09fa824a9ed825108c82ff4bf634c1037eeaf185f45673d4a1c1c6eeb712b7d72a549855"
+		checkBlsVerify(t, signature, addr, data, false)
+		// uncompressed
+		signature = "1927444bfcffdca34af57b78757b9b90f1cd28d2a3aeed2aa6bde299f8bbb9184756f2287b0588e6d3f2860d2bb2066e0c59778c1e644fb2cfb35fba8f09fa824a9ed825108c82ff4bf634c1037eeaf185f45673d4a1c1c6eeb712b7d72a549808942378dbce2ad72e87df083b66c631c18c582f9f9e104d2a7e13e79cbb22deccf67777b09c255d5de688098c6335d40a85768db766a6c6ece6de2a9f3487281a48fecab14702f6512652709d7edb7e8bc9f641aaa83b7e8afd7ae479e659e4"
+		checkBlsVerify(t, signature, addr, data, false)
+		// uncompressed one byte change
+		signature = "1927444bfcffdca34af57b78757b9b90f1cd28d2a3aeed2aa6bde299f8bbb9184756f2287b0588e6d3f2860d2bb2066e0c59778c1e644fb2cfb35fba8f09fa824a9ed825108c82ff4bf634c1037eeaf185f45673d4a1c1c6eeb712b7d72a549808942378dbce2ad72e87df083b66c631c18c582f9f9e104d2a7e13e79cbb22deccf67777b09c255d5de688098c6335d40a85668db766a6c6ece6de2a9f3487281a48fecab14702f6512652709d7edb7e8bc9f641aaa83b7e8afd7ae479e659e4"
+		checkBlsVerify(t, signature, addr, data, false)
+	})
+
+	t.Run("zero-point", func(t *testing.T) {
+		t.Parallel()
+		// Create Zero point private and public key
+		var key [32]byte
+		ki := KeyInfo{
+			Type:       KTBLS,
+			PrivateKey: key[:],
+		}
+		addr, err := bls.GetPubKey(ki.PrivateKey)
+		require.NoError(t, err)
+		require.Equal(t, "f3yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaby2smx7a", addr.String())
+		m, err := json.Marshal(ki)
+		require.NoError(t, err)
+		pk := hex.EncodeToString([]byte(m))
+
+		// Sign with Zero point private key should fail
+		sig, err := WalletSign(pk, []byte("hello"))
+		require.Error(t, err)
+		require.Nil(t, sig)
+
+		// Verify signature with Zero point public key should fail
+		signatureHex := "02c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+		sigBytes, err := hex.DecodeString(signatureHex)
+		require.NoError(t, err)
+		result, err := WalletVerify(addr, []byte("hello"), sigBytes)
+		require.Error(t, err)
+		require.False(t, result)
+	})
+}
+
+type DummyStream struct {
+}
+
+func (d DummyStream) XORKeyStream(dst, src []byte) {
+	for i := range dst {
+		dst[i] = 0
+	}
 }
